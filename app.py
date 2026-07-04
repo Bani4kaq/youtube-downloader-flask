@@ -26,13 +26,7 @@ if os.path.exists(SECRET_COOKIE_FILE):
 
 def base_ydl_options():
     """Options shared by every yt-dlp call: auth/bot-avoidance settings."""
-    opts = {
-        # Ask yt-dlp to pretend to be the YouTube Android app instead of a
-        # browser. Android-client requests get far less bot scrutiny, so
-        # this alone sometimes avoids the "Sign in to confirm you're not
-        # a bot" error with no cookies needed at all.
-        "extractor_args": {"youtube": {"player_client": ["android"]}},
-    }
+    opts = {}
     if COOKIE_FILE:
         opts["cookiefile"] = COOKIE_FILE
     return opts
