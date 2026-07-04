@@ -13,12 +13,15 @@ app = Flask(__name__)
 # collide or overwrite each other's files.
 BASE_DIR = tempfile.mkdtemp(prefix="ytdl_")
 
-# Render mounts Secret Files at /etc/secrets/<filename>. If a cookies.txt
-# secret file has been added in the Render dashboard, we use it so yt-dlp
-# looks like a real logged-in browser instead of a datacenter bot. If it's
-# not there (e.g. running locally, or the client-impersonation trick below
-# is already working on its own), we just skip it.
-COOKIE_FILE = "/etc/secrets/cookies.txt"
+# Render mounts Secret Files at /etc/secrets/<filename>, and that mount is
+# READ-ONLY. yt-dlp needs to write updated session cookies back to whatever
+# file it's given, so we copy the secret into a writable temp file once at
+# startup and point yt-dlp at the copy instead of the original.
+SECRET_COOKIE_FILE = "/etc/secrets/cookies.txt"
+COOKIE_FILE = None
+if os.path.exists(SECRET_COOKIE_FILE):
+    COOKIE_FILE = os.path.join(tempfile.gettempdir(), "cookies.txt")
+    shutil.copyfile(SECRET_COOKIE_FILE, COOKIE_FILE)
 
 
 def base_ydl_options():
@@ -30,7 +33,7 @@ def base_ydl_options():
         # a bot" error with no cookies needed at all.
         "extractor_args": {"youtube": {"player_client": ["android"]}},
     }
-    if os.path.exists(COOKIE_FILE):
+    if COOKIE_FILE:
         opts["cookiefile"] = COOKIE_FILE
     return opts
 
