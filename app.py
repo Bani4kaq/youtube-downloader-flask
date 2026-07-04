@@ -45,7 +45,16 @@ def formats():
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        opts = {"quiet": True, "noplaylist": True, **base_ydl_options()}
+        opts = {
+            "quiet": True,
+            "noplaylist": True,
+            # We only want the raw list of available formats here, not an
+            # actual chosen format -- skip yt-dlp's default selection logic
+            # entirely so a video with no format matching the *default*
+            # selector doesn't blow up before we even get to pick one.
+            "format": "best/bestvideo/bestaudio/worst",
+            **base_ydl_options(),
+        }
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=False)
     except Exception as e:
@@ -64,9 +73,11 @@ def formats():
 @app.route("/download", methods=["POST"])
 def download():
     url = request.form.get("url", "").strip()
-    quality = request.form.get("quality", "")
+    quality = request.form.get("quality", "").strip()
     if not url:
         return jsonify({"error": "No URL provided"}), 400
+    if not quality or quality == "Check a video first":
+        return jsonify({"error": "Pick a quality from the dropdown first (click Check Video, then select one)."}), 400
 
     job_id = str(uuid.uuid4())
     job_dir = os.path.join(BASE_DIR, job_id)
