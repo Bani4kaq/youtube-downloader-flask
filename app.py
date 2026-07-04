@@ -13,6 +13,27 @@ app = Flask(__name__)
 # collide or overwrite each other's files.
 BASE_DIR = tempfile.mkdtemp(prefix="ytdl_")
 
+# Render mounts Secret Files at /etc/secrets/<filename>. If a cookies.txt
+# secret file has been added in the Render dashboard, we use it so yt-dlp
+# looks like a real logged-in browser instead of a datacenter bot. If it's
+# not there (e.g. running locally, or the client-impersonation trick below
+# is already working on its own), we just skip it.
+COOKIE_FILE = "/etc/secrets/cookies.txt"
+
+
+def base_ydl_options():
+    """Options shared by every yt-dlp call: auth/bot-avoidance settings."""
+    opts = {
+        # Ask yt-dlp to pretend to be the YouTube Android app instead of a
+        # browser. Android-client requests get far less bot scrutiny, so
+        # this alone sometimes avoids the "Sign in to confirm you're not
+        # a bot" error with no cookies needed at all.
+        "extractor_args": {"youtube": {"player_client": ["android"]}},
+    }
+    if os.path.exists(COOKIE_FILE):
+        opts["cookiefile"] = COOKIE_FILE
+    return opts
+
 
 @app.route("/")
 def index():
@@ -27,7 +48,8 @@ def formats():
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        with yt_dlp.YoutubeDL({"quiet": True, "noplaylist": True}) as ydl:
+        opts = {"quiet": True, "noplaylist": True, **base_ydl_options()}
+        with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(url, download=False)
     except Exception as e:
         return jsonify({"error": f"Couldn't read that URL ({e})"}), 400
@@ -57,6 +79,7 @@ def download():
         "noplaylist": True,
         "outtmpl": os.path.join(job_dir, "%(title)s.%(ext)s"),
         "quiet": True,
+        **base_ydl_options(),
     }
 
     if quality.startswith("Audio"):
