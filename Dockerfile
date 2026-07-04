@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 # ffmpeg is the whole reason we're using a Dockerfile instead of Render's
-# plain Python environment -- this guarantees it's installed and on PATH.
+# plain Python environment, this guarantees it's installed and on PATH.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg && \
     rm -rf /var/lib/apt/lists/*
