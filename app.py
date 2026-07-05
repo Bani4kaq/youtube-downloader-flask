@@ -33,6 +33,12 @@ def base_ydl_options():
         # return the full format list more reliably; "web" stays as a
         # fallback in case "tv" ever has the opposite problem.
         "extractor_args": {"youtube": {"player_client": ["tv", "web"]}},
+        # yt-dlp now solves YouTube's signature/"n" challenges using a small
+        # external JS script it fetches on demand (via the Deno runtime we
+        # installed in the Dockerfile). By default it refuses to download
+        # that script as a security precaution -- this explicitly allows it,
+        # equivalent to the CLI's --remote-components ejs:github.
+        "remote_components": ["ejs:github"],
     }
     if COOKIE_FILE:
         opts["cookiefile"] = COOKIE_FILE
