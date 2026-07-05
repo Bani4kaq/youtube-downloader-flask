@@ -48,11 +48,10 @@ def formats():
         opts = {
             "quiet": True,
             "noplaylist": True,
-            # We only want the raw list of available formats here, not an
-            # actual chosen format -- skip yt-dlp's default selection logic
-            # entirely so a video with no format matching the *default*
-            # selector doesn't blow up before we even get to pick one.
-            "format": "best/bestvideo/bestaudio/worst",
+            # We only need the raw formats list to build the dropdown, not
+            # an actually resolved format -- this stops yt-dlp from treating
+            # "nothing matched the default selector" as a fatal error.
+            "ignore_no_formats_error": True,
             **base_ydl_options(),
         }
         with yt_dlp.YoutubeDL(opts) as ydl:
