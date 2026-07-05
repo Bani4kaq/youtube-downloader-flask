@@ -53,7 +53,11 @@ def formats():
 
     try:
         opts = {
-            "quiet": True,
+            # TEMP: verbose so we can see in Render's logs *why* video
+            # formats are being dropped. Flip back to quiet/no warnings
+            # once we've diagnosed the missing-formats issue.
+            "quiet": False,
+            "no_warnings": False,
             "noplaylist": True,
             # We only need the raw formats list to build the dropdown, not
             # an actually resolved format -- this stops yt-dlp from treating
