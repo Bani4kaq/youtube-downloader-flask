@@ -26,7 +26,14 @@ if os.path.exists(SECRET_COOKIE_FILE):
 
 def base_ydl_options():
     """Options shared by every yt-dlp call: auth/bot-avoidance settings."""
-    opts = {}
+    opts = {
+        # The default "web" client sometimes fails to resolve video-stream
+        # decryption info while still returning audio fine, which silently
+        # drops every real video format. The "tv" embedded client tends to
+        # return the full format list more reliably; "web" stays as a
+        # fallback in case "tv" ever has the opposite problem.
+        "extractor_args": {"youtube": {"player_client": ["tv", "web"]}},
+    }
     if COOKIE_FILE:
         opts["cookiefile"] = COOKIE_FILE
     return opts
