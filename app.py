@@ -60,7 +60,11 @@ def formats():
         return jsonify({"error": f"Couldn't read that URL ({e})"}), 400
 
     heights = sorted(
-        {f["height"] for f in info.get("formats", []) if f.get("height")},
+        {
+            f["height"]
+            for f in info.get("formats", [])
+            if f.get("height") and f.get("vcodec") not in (None, "none")
+        },
         reverse=True,
     )
     options = [f"{h}p" for h in heights]
