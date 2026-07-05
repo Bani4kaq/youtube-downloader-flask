@@ -138,7 +138,11 @@ def download():
         shutil.rmtree(job_dir, ignore_errors=True)
         return jsonify({"error": "File not found after download"}), 500
 
-    response = send_file(filename, as_attachment=True)
+    try:
+        response = send_file(filename, as_attachment=True)
+    except Exception as e:
+        shutil.rmtree(job_dir, ignore_errors=True)
+        return jsonify({"error": f"Couldn't send the file ({e})"}), 500
 
     # Clean up the temp folder once the response has been fully sent.
     @response.call_on_close
